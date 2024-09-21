@@ -1,3 +1,14 @@
+name: Deploy gateway
+
+on:
+  push: 
+    branches:
+      - main
+    paths:
+      - gateway/**
+
+  workflow_dispatch: 
+
 jobs:
 
   deploy:
@@ -9,6 +20,8 @@ jobs:
       REGISTRY_UN: ${{ secrets.ACR_NAME }}
       REGISTRY_PW: ${{ secrets.AZURE_CLIENT_SECRET }}
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      NAME: gateway
+      DIRECTORY: gateway
 
     steps:
       
@@ -21,3 +34,29 @@ jobs:
       - name: Log in to Azure Container Registry
         run: |
           echo "${{ secrets.AZURE_CLIENT_SECRET }}" | docker login "${{ secrets.ACR_NAME }}.azurecr.io" --username "${{ secrets.ACR_NAME }}" --password-stdin
+
+      #
+      # Builds the Docker image.
+      #
+      - name: Build
+        run: ./scripts/cd/build-image.sh
+
+      #
+      # Publishes the Docker image to the container registry.
+      #
+      - name: Publish
+        run: ./scripts/cd/push-image.sh
+
+      #
+      # Installs Kubectl and connects it to the cluster.
+      #
+      - uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+          kubectl-version: v1.24.2
+      
+      #
+      # Expands the configuration template and deploys the microservice.
+      #
+      - name: Deploy
+        run: ./scripts/cd/deploy.sh
