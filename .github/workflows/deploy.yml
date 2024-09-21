@@ -1,27 +1,3 @@
-# 
-# GitHub Actions workflow.
-#
-# Automatically deploys the applications to Kubernetes on push to the main branch.
-#
-
-name: Deploy Applications
-
-on:
-  #
-  # Deploy the applications on push to the main branch.
-  #
-  push: 
-    branches:
-      - main
-    paths:
-      - book_catalog/**
-      - inventory_management/**
-  
-  #
-  # Allows deployment to be invoked manually through the GitHub Actions user interface.
-  #
-  workflow_dispatch: 
-
 jobs:
 
   deploy:
@@ -33,10 +9,10 @@ jobs:
       REGISTRY_UN: ${{ secrets.ACR_NAME }}
       REGISTRY_PW: ${{ secrets.AZURE_CLIENT_SECRET }}
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-  
+
     steps:
       
-      # Checks-out your repository under $GITHUB_WORKSPACE.
+      # Checks out your repository
       - uses: actions/checkout@v3
 
       #
@@ -44,29 +20,4 @@ jobs:
       #
       - name: Log in to Azure Container Registry
         run: |
-          echo "${{ secrets.AZURE_CLIENT_SECRET }}" | docker login "${{ env.CONTAINER_REGISTRY }}" --username "${{ env.REGISTRY_UN }}" --password-stdin
-
-      #
-      # Builds and publishes the Docker images.
-      #
-      - name: Build and Push Images
-        run: |
-          docker build -t ${{ env.CONTAINER_REGISTRY }}/book_catalog:latest ./book_catalog
-          docker push ${{ env.CONTAINER_REGISTRY }}/book_catalog:latest
-          docker build -t ${{ env.CONTAINER_REGISTRY }}/inventory_management:latest ./inventory_management
-          docker push ${{ env.CONTAINER_REGISTRY }}/inventory_management:latest
-
-      #
-      # Installs Kubectl and connects it to the cluster.
-      #
-      - uses: tale/kubectl-action@v1
-        with:
-          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-          kubectl-version: v1.24.2
-      
-      #
-      # Deploys the applications to Kubernetes.
-      #
-      - name: Deploy Applications
-        run: |
-          kubectl apply -f scripts/kubernetes/deployment.yaml
+          echo "${{ secrets.AZURE_CLIENT_SECRET }}" | docker login "${{ secrets.ACR_NAME }}.azurecr.io" --username "${{ secrets.ACR_NAME }}" --password-stdin
