@@ -34,7 +34,7 @@ jobs:
         docker push ${{ secrets.ACR_NAME }}.azurecr.io/inventory_management:latest
 
     - name: Set up Azure CLI
-      uses: azure/setup-cli@v1
+      uses: azure/setup-azure-cli@v1
       with:
         azure_subscription: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         azure_service_principal: ${{ secrets.AZURE_CLIENT_ID }}
