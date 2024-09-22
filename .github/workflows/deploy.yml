@@ -1,4 +1,4 @@
-name: Deploy Gateway
+name: Deploy Book Catalog and Inventory Management Services
 
 on:
   push:
@@ -12,32 +12,40 @@ jobs:
     env:
       VERSION: ${{ github.sha }}
       CONTAINER_REGISTRY: crpart5.azurecr.io
-      REGISTRY_UN: ${{ secrets.REGISTRY_UN }} # Store this in GitHub Secrets
-      REGISTRY_PW: ${{ secrets.REGISTRY_PW }} # Store this in GitHub Secrets
+      REGISTRY_UN: ${{ secrets.REGISTRY_UN }}
+      REGISTRY_PW: ${{ secrets.REGISTRY_PW }}
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-      NAME: gateway
-      DIRECTORY: gateway
+      BOOK_CATALOG_DIR: book_catalog         # Directory for book_catalog service
+      INVENTORY_MANAGEMENT_DIR: inventory_management  # Directory for inventory_management service
 
     steps:
       # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Log in to Azure Container Registry without interactive prompts
+      # Log in to Azure Container Registry
       - name: Log in to Azure Container Registry
         run: |
           docker login ${{ env.CONTAINER_REGISTRY }} \
             --username ${{ env.REGISTRY_UN }} \
             --password ${{ env.REGISTRY_PW }}
 
-      # Build Docker image
-      - name: Build Docker image
+      # Build Book Catalog Docker image
+      - name: Build Book Catalog Docker image
         run: |
-          docker build -t "${{ env.CONTAINER_REGISTRY }}/${{ env.NAME }}:${{ env.VERSION }}" ${{ env.DIRECTORY }}
+          docker build -t "${{ env.CONTAINER_REGISTRY }}/book_catalog:${{ env.VERSION }}" ${{ env.BOOK_CATALOG_DIR }}
 
-      # Push Docker image to the Azure Container Registry
-      - name: Push Docker image
+      # Push Book Catalog Docker image
+      - name: Push Book Catalog Docker image
         run: |
-          docker push "${{ env.CONTAINER_REGISTRY }}/${{ env.NAME }}:${{ env.VERSION }}"
+          docker push "${{ env.CONTAINER_REGISTRY }}/book_catalog:${{ env.VERSION }}"
 
-      # Additional deployment steps (e.g., deploying to Kubernetes) can go here
+      # Build Inventory Management Docker image
+      - name: Build Inventory Management Docker image
+        run: |
+          docker build -t "${{ env.CONTAINER_REGISTRY }}/inventory_management:${{ env.VERSION }}" ${{ env.INVENTORY_MANAGEMENT_DIR }}
+
+      # Push Inventory Management Docker image
+      - name: Push Inventory Management Docker image
+        run: |
+          docker push "${{ env.CONTAINER_REGISTRY }}/inventory_management:${{ env.VERSION }}"
