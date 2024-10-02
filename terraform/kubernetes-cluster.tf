@@ -28,5 +28,5 @@ resource "azurerm_kubernetes_cluster" "cluster" {
 output "kube_config" {
   value = base64encode(azurerm_kubernetes_cluster.cluster.kube_config_raw)
   sensitive = true
-}
+   }
 }
