@@ -1,15 +1,15 @@
-provider "azurerm" {
-  features {}
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.71.0"
+    }
+  }
 
-  use_cli = true
-  
-  subscription_id = "9ec782cc-bf86-4586-9cc0-9676839244dd"
+  required_version = ">= 1.5.6"
 }
 
-
-provider "kubernetes" {
-  host                   = azurerm_kubernetes_cluster.aks.kube_config[0].host
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.aks.kube_config[0].client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.aks.kube_config[0].client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.aks.kube_config[0].cluster_ca_certificate)
+provider "azurerm" {
+  features {}
+  skip_provider_registration = true
 }
