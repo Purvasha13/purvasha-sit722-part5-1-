@@ -17,8 +17,9 @@ resource "azurerm_kubernetes_cluster" "cluster" {
   network_profile {
     network_plugin = "azure"
   }
+}
 
-  resource "azurerm_role_assignment" "role_assignment" {
+resource "azurerm_role_assignment" "role_assignment" {
   principal_id                     = azurerm_kubernetes_cluster.cluster.kubelet_identity[0].object_id
   role_definition_name             = "AcrPull"
   scope                            = azurerm_container_registry.container_registry.id
@@ -26,7 +27,6 @@ resource "azurerm_kubernetes_cluster" "cluster" {
 }
 
 output "kube_config" {
-  value = base64encode(azurerm_kubernetes_cluster.cluster.kube_config_raw)
+  value     = base64encode(azurerm_kubernetes_cluster.cluster.kube_config_raw)
   sensitive = true
-   }
 }

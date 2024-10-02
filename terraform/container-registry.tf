@@ -4,8 +4,8 @@ resource "azurerm_container_registry" "container_registry" {
   location            = "australiaeast"
   sku                 = "Standard"
   admin_enabled       = true
+}
 
-  output "registry_name" {
+output "registry_name" {
   value = azurerm_container_registry.container_registry.name
-    }
 }
