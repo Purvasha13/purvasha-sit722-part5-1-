@@ -9,43 +9,84 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      VERSION: ${{ github.sha }}
-      CONTAINER_REGISTRY: crpart5.azurecr.io
-      REGISTRY_UN: ${{ secrets.REGISTRY_UN }}
-      REGISTRY_PW: ${{ secrets.REGISTRY_PW }}
-      KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-      BOOK_CATALOG_DIR: book_catalog         # Directory for book_catalog service
-      INVENTORY_MANAGEMENT_DIR: inventory_management  # Directory for inventory_management service
-
     steps:
       # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Log in to Azure Container Registry
-      - name: Log in to Azure Container Registry
-        run: |
-          docker login ${{ env.CONTAINER_REGISTRY }} \
-            --username ${{ env.REGISTRY_UN }} \
-            --password ${{ env.REGISTRY_PW }}
+      #Azure
+     - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Build Book Catalog Docker image
-      - name: Build Book Catalog Docker image
-        run: |
-          docker build -t "${{ env.CONTAINER_REGISTRY }}/book_catalog:${{ env.VERSION }}" ${{ env.BOOK_CATALOG_DIR }}
+      #Terraform     
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.6
 
-      # Push Book Catalog Docker image
-      - name: Push Book Catalog Docker image
-        run: |
-          docker push "${{ env.CONTAINER_REGISTRY }}/book_catalog:${{ env.VERSION }}"
+      - name: terraform init
+        working-directory: ./terraform
+        run: terraform init
 
-      # Build Inventory Management Docker image
-      - name: Build Inventory Management Docker image
-        run: |
-          docker build -t "${{ env.CONTAINER_REGISTRY }}/inventory_management:${{ env.VERSION }}" ${{ env.INVENTORY_MANAGEMENT_DIR }}
+      - name: terraform plan
+        working-directory: ./terraform
+        run: terraform plan
 
-      # Push Inventory Management Docker image
-      - name: Push Inventory Management Docker image
+      - name: terraform apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+
+      - name: Get Container Registry Name
+        working-directory: ./terraform
         run: |
-          docker push "${{ env.CONTAINER_REGISTRY }}/inventory_management:${{ env.VERSION }}"
+          CONTAINER_REGISTRY=$(terraform-bin output -raw registry_name)
+          echo "CONTAINER_REGISTRY=$CONTAINER_REGISTRY" >> $GITHUB_ENV
+          
+      - name: Login to Azure Container Registry
+        run: |
+          echo ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }} | docker login ${{ env.CONTAINER_REGISTRY }}.azurecr.io -u ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }} --password-stdin
+
+       #Docker image
+      - name: Set permissions for build, push, deploy scripts
+        working-directory: ./scripts/
+        run: |
+          chmod +x build-image.sh
+          chmod +x push-image.sh
+          chmod +x deploy.sh
+          chmod +x delete.sh
+
+      - name: Docker images
+        env:
+          CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
+          VERSION: ${{ github.sha }}
+        run: ./build-image.sh
+
+
+      - name: Push images
+        env:
+          CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
+          VERSION: ${{ github.sha }}
+        run: ./push-image.sh
+
+      #Kubernetes
+      - name: Kubernetes Config
+        working-directory: ./scripts/terraform
+        run: |
+          KUBECONFIG_CONTENT=$(terraform-bin output -raw kube_config)
+          echo "KUBECONFIG_CONTENT=$KUBECONFIG_CONTENT" >> $GITHUB_ENV
+
+      - name: Set up kubectl
+        uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ env.KUBECONFIG_CONTENT }}
+          kubectl-version: v1.30.3
+
+      - name: Deploy images
+        env:
+          CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
+          VERSION: ${{ github.sha }}
+        run: ./deploy.sh
+
+      
