@@ -14,41 +14,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      #Azure
-     - name: Azure Login
+      # Azure Login
+      - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      #Terraform     
-      - name: Setup terraform
+      # Setup Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.6
 
-      - name: terraform init
+      - name: Terraform Init
         working-directory: ./terraform
         run: terraform init
 
-      - name: terraform plan
+      - name: Terraform Plan
         working-directory: ./terraform
         run: terraform plan
 
-      - name: terraform apply
+      - name: Terraform Apply
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
       - name: Get Container Registry Name
         working-directory: ./terraform
         run: |
-          CONTAINER_REGISTRY=$(terraform-bin output -raw registry_name)
+          CONTAINER_REGISTRY=$(terraform output -raw registry_name)
           echo "CONTAINER_REGISTRY=$CONTAINER_REGISTRY" >> $GITHUB_ENV
-          
+
       - name: Login to Azure Container Registry
         run: |
           echo ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }} | docker login ${{ env.CONTAINER_REGISTRY }}.azurecr.io -u ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }} --password-stdin
 
-       #Docker image
+      # Set permissions for build, push, deploy scripts
       - name: Set permissions for build, push, deploy scripts
         working-directory: ./scripts/
         run: |
@@ -57,36 +57,16 @@ jobs:
           chmod +x deploy.sh
           chmod +x delete.sh
 
-      - name: Docker images
+      - name: Docker Images
         env:
           CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
           VERSION: ${{ github.sha }}
         run: ./build-image.sh
 
-
-      - name: Push images
+      - name: Push Images
         env:
           CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
           VERSION: ${{ github.sha }}
         run: ./push-image.sh
 
-      #Kubernetes
-      - name: Kubernetes Config
-        working-directory: ./scripts/terraform
-        run: |
-          KUBECONFIG_CONTENT=$(terraform-bin output -raw kube_config)
-          echo "KUBECONFIG_CONTENT=$KUBECONFIG_CONTENT" >> $GITHUB_ENV
-
-      - name: Set up kubectl
-        uses: tale/kubectl-action@v1
-        with:
-          base64-kube-config: ${{ env.KUBECONFIG_CONTENT }}
-          kubectl-version: v1.30.3
-
-      - name: Deploy images
-        env:
-          CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
-          VERSION: ${{ github.sha }}
-        run: ./deploy.sh
-
-      
+   
