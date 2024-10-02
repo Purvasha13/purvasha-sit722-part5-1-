@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: # Allows triggering manually
 
 jobs:
   deploy:
@@ -41,8 +42,12 @@ jobs:
       - name: Get Container Registry Name
         working-directory: ./terraform
         run: |
+          echo "Registry name output:"
+          terraform output -raw registry_name
           CONTAINER_REGISTRY=$(terraform output -raw registry_name)
-          echo "CONTAINER_REGISTRY=$CONTAINER_REGISTRY" >> $GITHUB_ENV
+          echo "CONTAINER_REGISTRY=${CONTAINER_REGISTRY}" >> $GITHUB_ENV
+
+
 
       - name: Login to Azure Container Registry
         run: |
