@@ -1,4 +1,4 @@
-name: Deploy Book Catalog and Inventory Management Services
+name: Deploy  Services
 
 on:
   push:
@@ -39,16 +39,15 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
+      # Get the Azure Container Registry name from Terraform output
       - name: Get Container Registry Name
         working-directory: ./terraform
         run: |
-          echo "Registry name output:"
-          terraform output -raw registry_name
           CONTAINER_REGISTRY=$(terraform output -raw registry_name)
           echo "CONTAINER_REGISTRY=${CONTAINER_REGISTRY}" >> $GITHUB_ENV
+        shell: bash
 
-
-
+      # Login to Azure Container Registry using credentials from secrets
       - name: Login to Azure Container Registry
         run: |
           echo ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }} | docker login ${{ env.CONTAINER_REGISTRY }}.azurecr.io -u ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }} --password-stdin
@@ -62,16 +61,16 @@ jobs:
           chmod +x deploy.sh
           chmod +x delete.sh
 
-      - name: Docker Images
+      # Build Docker images
+      - name: Build Docker Images
         env:
           CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
           VERSION: ${{ github.sha }}
         run: ./build-image.sh
 
-      - name: Push Images
+      # Push Docker images to ACR
+      - name: Push Docker Images
         env:
           CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
           VERSION: ${{ github.sha }}
         run: ./push-image.sh
-
-   
