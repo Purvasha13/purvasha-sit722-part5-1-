@@ -23,7 +23,7 @@ spec:
         - name: PORT
           value: "7000"
         - name: DATABASE_URL
-          value: "postgresql://purva_sit722_part5_user:8cpw5oglNjInCjUpEgwDWoLezynBQm5j@dpg-crnb28u8ii6s73enq9sg-a.oregon-postgres.render.com/purva_sit722_part5"
+          value: "postgresql://purva_sit722_part5_8v4f_user:EzzOiOHMkcOt2hFps39hnl1dWrcGDTcp@dpg-crvr3ma3esus7395oid0-a.oregon-postgres.render.com/purva_sit722_part5_8v4f"
 ---
 apiVersion: v1
 kind: Service
@@ -61,7 +61,7 @@ spec:
         - name: PORT
           value: "7001"
         - name: DATABASE_URL
-          value: "postgresql://purva_sit722_part5_user:8cpw5oglNjInCjUpEgwDWoLezynBQm5j@dpg-crnb28u8ii6s73enq9sg-a.oregon-postgres.render.com/purva_sit722_part5"
+          value: "postgresql://purva_sit722_part5_8v4f_user:EzzOiOHMkcOt2hFps39hnl1dWrcGDTcp@dpg-crvr3ma3esus7395oid0-a.oregon-postgres.render.com/purva_sit722_part5_8v4f"
 ---
 apiVersion: v1
 kind: Service
