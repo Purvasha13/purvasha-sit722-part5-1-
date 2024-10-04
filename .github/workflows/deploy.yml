@@ -43,9 +43,8 @@ jobs:
       - name: Get Container Registry Name
         working-directory: ./terraform
         run: |
-          CONTAINER_REGISTRY=$(terraform output -raw registry_name)
-          echo "CONTAINER_REGISTRY=${CONTAINER_REGISTRY}" >> $GITHUB_ENV
-        shell: bash
+          CONTAINER_REGISTRY=$(terraform-bin output -raw registry_name)
+          echo "CONTAINER_REGISTRY=$CONTAINER_REGISTRY" >> $GITHUB_ENV
 
       # Login to Azure Container Registry using credentials from secrets
       - name: Login to Azure Container Registry
