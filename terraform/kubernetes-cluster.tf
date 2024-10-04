@@ -1,7 +1,7 @@
 resource "azurerm_kubernetes_cluster" "cluster" {
-  name                = "AKSpart5"
+  name                = "akspart5"
   location            = "australiaeast"
-  resource_group_name = azurerm_resource_group.project5.name
+  resource_group_name = azurerm_resource_group.purva5.name
   dns_prefix          = "project4dns"
 
   default_node_pool {

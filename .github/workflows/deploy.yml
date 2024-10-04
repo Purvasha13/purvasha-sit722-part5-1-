@@ -73,3 +73,21 @@ jobs:
           CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
           VERSION: ${{ github.sha }}
         run: ./push-image.sh
+
+      - name: Get Kubernetes Config
+        working-directory: ./terraform
+        run: |
+          KUBECONFIG_CONTENT=$(terraform-bin output -raw kube_config)
+          echo "KUBECONFIG_CONTENT=$KUBECONFIG_CONTENT" >> $GITHUB_ENV
+
+      - name: Set up kubectl
+        uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ env.KUBECONFIG_CONTENT }}
+          kubectl-version: v1.30.3
+
+      - name: Deploy Docker images
+        env:
+          CONTAINER_REGISTRY: ${{ env.CONTAINER_REGISTRY }}
+          VERSION: ${{ github.sha }}
+        run: ./deploy.sh

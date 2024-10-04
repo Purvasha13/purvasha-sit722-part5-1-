@@ -5,15 +5,15 @@ variable "location" {
 
 variable "resource_group_name" {
   description = "Name of the Azure resource group"
-  default     = "project5"
+  default     = "purva5"
 }
 
 variable "container_registry_name" {
   description = "Name of the Azure Container Registry"
-  default     = "CRpart5"
+  default     = "crpurva5"
 }
 
 variable "kubernetes_cluster_name" {
   description = "Name of the Azure Kubernetes Cluster"
-  default     = "AKSpart5"
+  default     = "akspart5"
 }
