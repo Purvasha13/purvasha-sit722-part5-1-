@@ -1,5 +1,5 @@
-resource "azurerm_resource_group" "project5" {
-  name     = "project5"
+resource "azurerm_resource_group" "part5" {
+  name     = "part55"
   location = "australiaeast"
   
 }

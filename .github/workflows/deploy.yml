@@ -53,7 +53,7 @@ jobs:
 
       # Set permissions for build, push, deploy scripts
       - name: Set permissions for build, push, deploy scripts
-        working-directory: ./scripts/
+        working-directory: ./
         run: |
           chmod +x build-image.sh
           chmod +x push-image.sh
